@@ -28,7 +28,7 @@ function RecentEvents() {
     <section className="min-w-0 rounded-xl border border-border bg-card p-4">
       <h2 className="text-sm font-bold tracking-[0.12em]">RECENT EVENTS</h2>
       <div className="mt-3 -mx-1 overflow-x-auto">
-        <table className="w-full min-w-[620px] border-collapse text-left text-xs">
+        <table className="w-full min-w-[520px] border-collapse text-left text-xs">
           <thead>
             <tr className="text-muted-foreground">
               {["Time", "Event Type", "Camera", "Location", "Severity", "Actions"].map((h) => (
@@ -128,7 +128,7 @@ function CameraMap() {
 
 export function EventsAndMap() {
   return (
-    <div className="grid grid-cols-1 gap-3 xl:grid-cols-[minmax(0,1.55fr)_minmax(0,1fr)]">
+    <div className="grid grid-cols-1 gap-3 xl:grid-cols-[minmax(0,1.9fr)_minmax(0,1fr)]">
       <RecentEvents />
       <CameraMap />
     </div>
