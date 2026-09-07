@@ -68,9 +68,10 @@ function Dashboard() {
           <MetricCards />
           <div className="flex flex-col gap-3 xl:flex-row">
             <div className="min-w-0 flex-1 space-y-3">
-              <LiveFeeds />
+              <LiveFeeds anprActive={anprOn} onToggleAnpr={() => setAnprOn((v) => !v)} />
               <EventsAndMap />
             </div>
+            <AnprPanel open={anprOn} onClose={() => setAnprOn(false)} />
             <RightPanel />
           </div>
           <StatusBar />
