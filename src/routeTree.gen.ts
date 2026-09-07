@@ -10,33 +10,43 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ApiAnprPlatesRouteImport } from './routes/api/anpr/plates'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiAnprPlatesRoute = ApiAnprPlatesRouteImport.update({
+  id: '/api/anpr/plates',
+  path: '/api/anpr/plates',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/api/anpr/plates': typeof ApiAnprPlatesRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/api/anpr/plates': typeof ApiAnprPlatesRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/api/anpr/plates': typeof ApiAnprPlatesRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths: '/' | '/api/anpr/plates'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to: '/' | '/api/anpr/plates'
+  id: '__root__' | '/' | '/api/anpr/plates'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ApiAnprPlatesRoute: typeof ApiAnprPlatesRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +58,19 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/anpr/plates': {
+      id: '/api/anpr/plates'
+      path: '/api/anpr/plates'
+      fullPath: '/api/anpr/plates'
+      preLoaderRoute: typeof ApiAnprPlatesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ApiAnprPlatesRoute: ApiAnprPlatesRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
