@@ -10,11 +10,18 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ApiEventsRouteImport } from './routes/api/events'
 import { Route as ApiAnprPlatesRouteImport } from './routes/api/anpr/plates'
+import { Route as ApiEvidenceSplatRouteImport } from './routes/api/evidence/$'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiEventsRoute = ApiEventsRouteImport.update({
+  id: '/api/events',
+  path: '/api/events',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiAnprPlatesRoute = ApiAnprPlatesRouteImport.update({
@@ -22,31 +29,44 @@ const ApiAnprPlatesRoute = ApiAnprPlatesRouteImport.update({
   path: '/api/anpr/plates',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiEvidenceSplatRoute = ApiEvidenceSplatRouteImport.update({
+  id: '/api/evidence/$',
+  path: '/api/evidence/$',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/api/events': typeof ApiEventsRoute
   '/api/anpr/plates': typeof ApiAnprPlatesRoute
+  '/api/evidence/$': typeof ApiEvidenceSplatRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/api/events': typeof ApiEventsRoute
   '/api/anpr/plates': typeof ApiAnprPlatesRoute
+  '/api/evidence/$': typeof ApiEvidenceSplatRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/api/events': typeof ApiEventsRoute
   '/api/anpr/plates': typeof ApiAnprPlatesRoute
+  '/api/evidence/$': typeof ApiEvidenceSplatRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/api/anpr/plates'
+  fullPaths: '/' | '/api/events' | '/api/anpr/plates' | '/api/evidence/$'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/api/anpr/plates'
-  id: '__root__' | '/' | '/api/anpr/plates'
+  to: '/' | '/api/events' | '/api/anpr/plates' | '/api/evidence/$'
+  id: '__root__' | '/' | '/api/events' | '/api/anpr/plates' | '/api/evidence/$'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ApiEventsRoute: typeof ApiEventsRoute
   ApiAnprPlatesRoute: typeof ApiAnprPlatesRoute
+  ApiEvidenceSplatRoute: typeof ApiEvidenceSplatRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -58,6 +78,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/events': {
+      id: '/api/events'
+      path: '/api/events'
+      fullPath: '/api/events'
+      preLoaderRoute: typeof ApiEventsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/anpr/plates': {
       id: '/api/anpr/plates'
       path: '/api/anpr/plates'
@@ -65,12 +92,21 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAnprPlatesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/evidence/$': {
+      id: '/api/evidence/$'
+      path: '/api/evidence/$'
+      fullPath: '/api/evidence/$'
+      preLoaderRoute: typeof ApiEvidenceSplatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ApiEventsRoute: ApiEventsRoute,
   ApiAnprPlatesRoute: ApiAnprPlatesRoute,
+  ApiEvidenceSplatRoute: ApiEvidenceSplatRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
