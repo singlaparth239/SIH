@@ -1,14 +1,32 @@
 import { useEffect, useRef, useState } from "react";
-import { Car, Truck, Bike, X, ScanLine } from "lucide-react";
+import { Car, Truck, Bike, X, ScanLine, Plug, RefreshCw } from "lucide-react";
 
-type Plate = {
-  id: number;
+/**
+ * ─── ANPR DATA SOURCE ────────────────────────────────────────────────────────
+ *
+ * `ANPR_ENDPOINT` — local JSON endpoint to poll for plate detections.
+ *   • Set to `null` (or leave it unreachable) to use the built-in simulator.
+ *   • Default is the in-app stub at `/api/anpr/plates`; point it at your own
+ *     local backend instead, e.g. "http://localhost:5000/api/plates".
+ *
+ * Expected response: JSON array, newest first — see src/routes/api/anpr/plates.ts
+ * for the exact field contract. Missing optional fields are filled in safely.
+ *
+ * `POLL_INTERVAL_MS` — how often the endpoint is polled / the simulator emits.
+ */
+const ANPR_ENDPOINT: string | null = "/api/anpr/plates";
+const POLL_INTERVAL_MS = 3200;
+
+export type Plate = {
+  id: string;
   plate: string;
   time: string;
   cam: string;
   type: "car" | "truck" | "bike";
   flagged?: boolean;
 };
+
+type SourceMode = "connecting" | "api" | "simulation";
 
 const CAMS = [
   "CAM 01 — Main Gate",
@@ -21,7 +39,7 @@ const STATES = ["DL", "HR", "PB", "RJ", "UP", "JK"];
 const LETTERS = "ABCDEFGHJKLMNPRSTUVWXYZ";
 const TYPES: Plate["type"][] = ["car", "truck", "bike"];
 
-function randomPlate(): string {
+function randomPlateText(): string {
   const s = STATES[Math.floor(Math.random() * STATES.length)]!;
   const d = Math.floor(Math.random() * 9) + 1;
   const l =
@@ -32,10 +50,12 @@ function randomPlate(): string {
 }
 
 let seq = 1;
-function makePlate(): Plate {
+
+/** Simulator: one new detection per tick. */
+function simulatePlate(): Plate {
   return {
-    id: seq++,
-    plate: randomPlate(),
+    id: `sim-${seq++}`,
+    plate: randomPlateText(),
     time: new Date().toLocaleTimeString("en-US", { hour12: true }),
     cam: CAMS[Math.floor(Math.random() * CAMS.length)]!,
     type: TYPES[Math.floor(Math.random() * TYPES.length)]!,
@@ -43,19 +63,76 @@ function makePlate(): Plate {
   };
 }
 
+/** Normalize one raw API row into a Plate, tolerating missing optional fields. */
+function normalizePlate(raw: unknown): Plate | null {
+  if (typeof raw !== "object" || raw === null) return null;
+  const r = raw as Record<string, unknown>;
+  if (typeof r.plate !== "string" || !r.plate.trim()) return null;
+  const type: Plate["type"] =
+    r.type === "truck" || r.type === "bike" || r.type === "car" ? r.type : "car";
+  return {
+    id: typeof r.id === "string" || typeof r.id === "number" ? `api-${r.id}` : `api-${seq++}`,
+    plate: r.plate,
+    time:
+      typeof r.time === "string" && r.time
+        ? r.time
+        : new Date().toLocaleTimeString("en-US", { hour12: true }),
+    cam: typeof r.cam === "string" && r.cam ? r.cam : "UNKNOWN CAM",
+    type,
+    flagged: r.flagged === true,
+  };
+}
+
 const typeIcon = { car: Car, truck: Truck, bike: Bike };
 
 export function AnprPanel({ open, onClose }: { open: boolean; onClose: () => void }) {
   const [plates, setPlates] = useState<Plate[]>([]);
+  const [mode, setMode] = useState<SourceMode>("connecting");
   const timer = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
     if (!open) return;
-    setPlates(Array.from({ length: 5 }, makePlate));
-    timer.current = setInterval(() => {
-      setPlates((prev) => [makePlate(), ...prev].slice(0, 40));
-    }, 3200);
+
+    let cancelled = false;
+    let useApi = ANPR_ENDPOINT !== null;
+    setMode(ANPR_ENDPOINT ? "connecting" : "simulation");
+    setPlates([]);
+
+    async function pollApi() {
+      try {
+        const res = await fetch(ANPR_ENDPOINT!, { cache: "no-store" });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data: unknown = await res.json();
+        if (!Array.isArray(data)) throw new Error("Expected JSON array");
+        const next = data.map(normalizePlate).filter((p): p is Plate => p !== null).slice(0, 40);
+        if (cancelled) return;
+        setMode("api");
+        // Merge by plate+time so the list stays chronological and deduped.
+        setPlates((prev) => {
+          const seen = new Set(prev.map((p) => `${p.plate}|${p.time}`));
+          const fresh = next.filter((p) => !seen.has(`${p.plate}|${p.time}`));
+          return [...fresh, ...prev].slice(0, 40);
+        });
+      } catch {
+        // Endpoint unreachable or malformed — degrade gracefully to the simulator.
+        if (cancelled || !useApi) return;
+        useApi = false;
+        setMode("simulation");
+        setPlates(Array.from({ length: 5 }, simulatePlate));
+      }
+    }
+
+    function tick() {
+      if (useApi) void pollApi();
+      else setPlates((prev) => [simulatePlate(), ...prev].slice(0, 40));
+    }
+
+    if (useApi) void pollApi();
+    else setPlates(Array.from({ length: 5 }, simulatePlate));
+
+    timer.current = setInterval(tick, POLL_INTERVAL_MS);
     return () => {
+      cancelled = true;
       if (timer.current) clearInterval(timer.current);
     };
   }, [open]);
@@ -79,9 +156,27 @@ export function AnprPanel({ open, onClose }: { open: boolean; onClose: () => voi
       </header>
 
       <div className="flex items-center justify-between px-4 py-2 text-[10px] tracking-[0.16em] text-muted-foreground">
-        <span className="flex items-center gap-1.5 text-success">
-          <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-success" />
-          ANPR ACTIVE
+        <span
+          className={`flex items-center gap-1.5 ${
+            mode === "api" ? "text-success" : mode === "connecting" ? "text-warning" : "text-primary"
+          }`}
+        >
+          <span
+            className={`h-1.5 w-1.5 animate-pulse rounded-full ${
+              mode === "api" ? "bg-success" : mode === "connecting" ? "bg-warning" : "bg-primary"
+            }`}
+          />
+          {mode === "api" ? (
+            <>
+              <Plug className="h-3 w-3" /> API FEED
+            </>
+          ) : mode === "connecting" ? (
+            <>
+              <RefreshCw className="h-3 w-3 animate-spin" /> CONNECTING
+            </>
+          ) : (
+            "ANPR SIMULATION"
+          )}
         </span>
         <span className="tabular-nums">{plates.length} DETECTIONS</span>
       </div>
