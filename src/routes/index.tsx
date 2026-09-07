@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { Bell, LogOut, Maximize2, Menu, SunMedium } from "lucide-react";
 import { Sidebar } from "@/components/dash/Sidebar";
@@ -6,6 +7,7 @@ import { LiveFeeds } from "@/components/dash/LiveFeeds";
 import { EventsAndMap } from "@/components/dash/EventsAndMap";
 import { RightPanel } from "@/components/dash/RightPanel";
 import { StatusBar } from "@/components/dash/StatusBar";
+import { AnprPanel } from "@/components/dash/AnprPanel";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -30,6 +32,7 @@ export const Route = createFileRoute("/")({
 });
 
 function Dashboard() {
+  const [anprOn, setAnprOn] = useState(false);
   return (
     <div className="flex min-h-screen w-full bg-background text-foreground">
       <div className="hidden lg:block">
