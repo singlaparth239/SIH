@@ -67,19 +67,25 @@ function simulatePlate(): Plate {
 function normalizePlate(raw: unknown): Plate | null {
   if (typeof raw !== "object" || raw === null) return null;
   const r = raw as Record<string, unknown>;
-  if (typeof r.plate !== "string" || !r.plate.trim()) return null;
+  const plate = r["plate"];
+  if (typeof plate !== "string" || !plate.trim()) return null;
+  const rawType = r["type"];
   const type: Plate["type"] =
-    r.type === "truck" || r.type === "bike" || r.type === "car" ? r.type : "car";
+    rawType === "truck" || rawType === "bike" || rawType === "car" ? rawType : "car";
+  const rawId = r["id"];
+  const rawTime = r["time"];
+  const rawCam = r["cam"];
   return {
-    id: typeof r.id === "string" || typeof r.id === "number" ? `api-${r.id}` : `api-${seq++}`,
-    plate: r.plate,
+    id:
+      typeof rawId === "string" || typeof rawId === "number" ? `api-${rawId}` : `api-${seq++}`,
+    plate,
     time:
-      typeof r.time === "string" && r.time
-        ? r.time
+      typeof rawTime === "string" && rawTime
+        ? rawTime
         : new Date().toLocaleTimeString("en-US", { hour12: true }),
-    cam: typeof r.cam === "string" && r.cam ? r.cam : "UNKNOWN CAM",
+    cam: typeof rawCam === "string" && rawCam ? rawCam : "UNKNOWN CAM",
     type,
-    flagged: r.flagged === true,
+    flagged: r["flagged"] === true,
   };
 }
 
