@@ -22,11 +22,11 @@ const LETTERS = "ABCDEFGHJKLMNPRSTUVWXYZ";
 const TYPES: Plate["type"][] = ["car", "truck", "bike"];
 
 function randomPlate(): string {
-  const s = STATES[Math.floor(Math.random() * STATES.length)];
+  const s = STATES[Math.floor(Math.random() * STATES.length)]!;
   const d = Math.floor(Math.random() * 9) + 1;
   const l =
-    LETTERS[Math.floor(Math.random() * LETTERS.length)] +
-    LETTERS[Math.floor(Math.random() * LETTERS.length)];
+    LETTERS[Math.floor(Math.random() * LETTERS.length)]! +
+    LETTERS[Math.floor(Math.random() * LETTERS.length)]!;
   const n = String(Math.floor(Math.random() * 9000) + 1000);
   return `${s} ${d}C ${l} ${n}`;
 }
@@ -37,8 +37,8 @@ function makePlate(): Plate {
     id: seq++,
     plate: randomPlate(),
     time: new Date().toLocaleTimeString("en-US", { hour12: true }),
-    cam: CAMS[Math.floor(Math.random() * CAMS.length)],
-    type: TYPES[Math.floor(Math.random() * TYPES.length)],
+    cam: CAMS[Math.floor(Math.random() * CAMS.length)]!,
+    type: TYPES[Math.floor(Math.random() * TYPES.length)]!,
     flagged: Math.random() < 0.18,
   };
 }
