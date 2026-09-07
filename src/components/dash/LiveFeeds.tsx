@@ -1,4 +1,4 @@
-import { Camera, Grid2X2, List, Move3D, Plus, Settings2, Bell } from "lucide-react";
+import { Camera, Grid2X2, List, Move3D, Plus, Settings2, Bell, ScanSearch } from "lucide-react";
 import cam01 from "@/assets/cam01.jpg";
 import cam02 from "@/assets/cam02.jpg";
 import cam03 from "@/assets/cam03.jpg";
@@ -125,12 +125,30 @@ function FeedTile({ feed }: { feed: Feed }) {
   );
 }
 
-export function LiveFeeds() {
+export function LiveFeeds({
+  anprActive,
+  onToggleAnpr,
+}: {
+  anprActive: boolean;
+  onToggleAnpr: () => void;
+}) {
   return (
     <section className="rounded-xl border border-border bg-card p-4">
       <header className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
         <h2 className="truncate text-sm font-bold tracking-[0.12em] text-foreground">LIVE FEEDS</h2>
         <div className="flex shrink-0 items-center gap-2">
+          <button
+            onClick={onToggleAnpr}
+            aria-pressed={anprActive}
+            className={`flex h-8 items-center gap-1.5 rounded-md border px-3 text-xs font-semibold transition-colors ${
+              anprActive
+                ? "border-primary/50 bg-primary/20 text-primary ring-1 ring-primary/30"
+                : "border-border text-muted-foreground hover:bg-accent hover:text-foreground"
+            }`}
+          >
+            <ScanSearch className={`h-3.5 w-3.5 ${anprActive ? "animate-pulse" : ""}`} />
+            Live ANPR Tracking
+          </button>
           <div className="flex overflow-hidden rounded-md border border-border">
             <button className="grid h-8 w-8 place-items-center bg-accent text-foreground">
               <Grid2X2 className="h-4 w-4" />
