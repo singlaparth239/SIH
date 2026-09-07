@@ -175,3 +175,12 @@
 @utility animate-siren {
   animation: siren-pulse 1.8s ease-in-out infinite;
 }
+
+@keyframes plate-in {
+  from { opacity: 0; transform: translateY(-8px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@utility animate-plate-in {
+  animation: plate-in 0.35s ease-out both;
+}
