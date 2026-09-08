@@ -12,7 +12,7 @@ const typeIcon = { car: Car, truck: Truck, bike: Bike };
 export function AnprPanel({
   open,
   onClose,
-  events,
+  events = [],
   live,
   onOpenEvidence,
 }: {
