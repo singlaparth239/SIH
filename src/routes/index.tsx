@@ -35,6 +35,9 @@ export const Route = createFileRoute("/")({
 
 function Dashboard() {
   const [anprOn, setAnprOn] = useState(false);
+  const [evidence, setEvidence] = useState<LogEvent | null>(null);
+  const { events, live } = useEventLog();
+  const activeAlerts = events.filter((e) => e.severity !== "LOW").length;
   return (
     <div className="flex min-h-screen w-full bg-background text-foreground">
       <div className="hidden lg:block">
