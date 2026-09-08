@@ -53,7 +53,7 @@ function Dashboard() {
             <div className="flex min-w-0 items-center gap-2 rounded-lg border border-danger/50 bg-danger/15 px-3 py-2">
               <Bell className="h-4 w-4 shrink-0 animate-pulse text-danger" />
               <span className="truncate text-xs font-bold tracking-wide text-danger">
-                3 ACTIVE ALERTS
+                {activeAlerts} ACTIVE ALERTS
               </span>
             </div>
           </div>
