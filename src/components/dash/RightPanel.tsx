@@ -1,53 +1,18 @@
 import { ArrowRight, Car, Footprints, PersonStanding, Siren } from "lucide-react";
-import cam01 from "@/assets/cam01.jpg";
-import cam02 from "@/assets/cam02.jpg";
-import cam04 from "@/assets/cam04.jpg";
+import type { LogEvent } from "@/lib/eventLog";
+import { EvidenceThumb } from "@/components/dash/EvidenceModal";
 
-const alerts = [
-  {
-    title: "Intrusion Detected",
-    camera: "CAM 01 - Main Gate",
-    time: "10:24:31 PM",
-    severity: "HIGH",
-    icon: PersonStanding,
-    thumb: cam01,
-    tone: "danger" as const,
-  },
-  {
-    title: "Vehicle in Restricted Zone",
-    camera: "CAM 02 - Perimeter North",
-    time: "10:23:10 PM",
-    severity: "MEDIUM",
-    icon: Car,
-    thumb: cam02,
-    tone: "warning" as const,
-  },
-  {
-    title: "Loitering Detected",
-    camera: "CAM 04 - River Bank",
-    time: "10:20:05 PM",
-    severity: "HIGH",
-    icon: Footprints,
-    thumb: cam04,
-    tone: "danger" as const,
-  },
-];
+const iconFor = (e: LogEvent) =>
+  e.type === "ANPR" ? Car : e.type === "INTRUSION" ? PersonStanding : Footprints;
 
-const summary = [
-  { label: "Intrusion", count: 10, pct: 37, color: "var(--danger)", dot: "bg-danger" },
-  { label: "Vehicle", count: 8, pct: 30, color: "var(--warning)", dot: "bg-warning" },
-  { label: "Loitering", count: 6, pct: 22, color: "var(--primary)", dot: "bg-primary" },
-  { label: "Others", count: 3, pct: 11, color: "var(--muted-foreground)", dot: "bg-muted-foreground" },
-];
-
-function Donut() {
+function Donut({ slices, total }: { slices: { label: string; pct: number; color: string }[]; total: number }) {
   const r = 42;
   const c = 2 * Math.PI * r;
   let offset = 0;
   return (
     <div className="relative h-32 w-32 shrink-0">
       <svg viewBox="0 0 100 100" className="h-full w-full -rotate-90">
-        {summary.map((s) => {
+        {slices.map((s) => {
           const len = (s.pct / 100) * c;
           const dash = `${len} ${c - len}`;
           const el = (
@@ -69,7 +34,7 @@ function Donut() {
       </svg>
       <div className="absolute inset-0 grid place-items-center text-center">
         <div>
-          <p className="text-2xl font-bold tabular-nums">27</p>
+          <p className="text-2xl font-bold tabular-nums">{total}</p>
           <p className="text-[10px] text-muted-foreground">Total</p>
         </div>
       </div>
@@ -77,62 +42,88 @@ function Donut() {
   );
 }
 
-export function RightPanel() {
+export function RightPanel({
+  events,
+  onOpenEvidence,
+}: {
+  events: LogEvent[];
+  onOpenEvidence: (e: LogEvent) => void;
+}) {
+  const alerts = events.filter((e) => e.severity !== "LOW").slice(0, 4);
+  const total = events.length;
+  const counts = {
+    Intrusion: events.filter((e) => e.type === "INTRUSION").length,
+    ANPR: events.filter((e) => e.type === "ANPR").length,
+    Others: events.filter((e) => e.type === "OTHER").length,
+  };
+  const colors: Record<string, { color: string; dot: string }> = {
+    Intrusion: { color: "var(--danger)", dot: "bg-danger" },
+    ANPR: { color: "var(--warning)", dot: "bg-warning" },
+    Others: { color: "var(--muted-foreground)", dot: "bg-muted-foreground" },
+  };
+  const summary = Object.entries(counts).map(([label, count]) => ({
+    label,
+    count,
+    pct: total ? Math.round((count / total) * 100) : 0,
+    color: colors[label]!.color,
+    dot: colors[label]!.dot,
+  }));
+
   return (
     <div className="flex w-full flex-col gap-3 xl:w-[340px] xl:shrink-0">
       <section className="rounded-xl border border-border bg-card p-4">
         <header className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
           <h2 className="truncate text-sm font-bold tracking-[0.12em]">LIVE ALERTS</h2>
-          <button className="shrink-0 text-xs text-primary hover:text-primary/80">View all</button>
+          <span className="shrink-0 text-xs tabular-nums text-primary">{alerts.length} active</span>
         </header>
 
         <ul className="mt-3 space-y-2">
-          {alerts.map((a) => (
-            <li
-              key={a.title}
-              className="flex items-start gap-3 rounded-lg border border-border bg-panel p-2.5 transition-colors hover:border-primary/40"
-            >
-              <div
-                className={`grid h-9 w-9 shrink-0 place-items-center rounded-lg ${
-                  a.tone === "danger" ? "bg-danger/15 text-danger" : "bg-warning/15 text-warning"
-                }`}
+          {alerts.map((a) => {
+            const Icon = iconFor(a);
+            const danger = a.severity === "HIGH";
+            return (
+              <li
+                key={a.id}
+                className="animate-plate-in flex items-start gap-3 rounded-lg border border-border bg-panel p-2.5 transition-colors hover:border-primary/40"
               >
-                <a.icon className="h-4.5 w-4.5" />
-              </div>
-              <img
-                src={a.thumb}
-                alt={`${a.title} snapshot`}
-                loading="lazy"
-                width={96}
-                height={64}
-                className="h-14 w-20 shrink-0 rounded-md object-cover"
-              />
-              <div className="min-w-0 flex-1">
-                <p
-                  className={`truncate text-xs font-semibold ${
-                    a.tone === "danger" ? "text-danger" : "text-warning"
+                <div
+                  className={`grid h-9 w-9 shrink-0 place-items-center rounded-lg ${
+                    danger ? "bg-danger/15 text-danger" : "bg-warning/15 text-warning"
                   }`}
                 >
-                  {a.title}
-                </p>
-                <p className="truncate text-[11px] text-muted-foreground">{a.camera}</p>
-                <div className="mt-1 flex items-center justify-between gap-2">
-                  <span className="truncate text-[10px] tabular-nums text-muted-foreground">
-                    {a.time} · Today
-                  </span>
-                  <span
-                    className={`shrink-0 rounded border px-1.5 py-0.5 text-[9px] font-bold ${
-                      a.tone === "danger"
-                        ? "border-danger/40 bg-danger/15 text-danger"
-                        : "border-warning/40 bg-warning/15 text-warning"
-                    }`}
-                  >
-                    {a.severity}
-                  </span>
+                  <Icon className="h-4.5 w-4.5" />
                 </div>
-              </div>
+                <EvidenceThumb event={a} onOpen={onOpenEvidence} className="h-14 w-20" />
+                <div className="min-w-0 flex-1">
+                  <p
+                    className={`truncate text-xs font-semibold ${danger ? "text-danger" : "text-warning"}`}
+                  >
+                    {a.details}
+                  </p>
+                  <p className="truncate text-[11px] text-muted-foreground">{a.camera}</p>
+                  <div className="mt-1 flex items-center justify-between gap-2">
+                    <span className="truncate text-[10px] tabular-nums text-muted-foreground">
+                      {a.timestamp} · {a.type}
+                    </span>
+                    <span
+                      className={`shrink-0 rounded border px-1.5 py-0.5 text-[9px] font-bold ${
+                        danger
+                          ? "border-danger/40 bg-danger/15 text-danger"
+                          : "border-warning/40 bg-warning/15 text-warning"
+                      }`}
+                    >
+                      {a.severity}
+                    </span>
+                  </div>
+                </div>
+              </li>
+            );
+          })}
+          {alerts.length === 0 && (
+            <li className="rounded-lg border border-border bg-panel p-4 text-center text-xs text-muted-foreground">
+              No active alerts
             </li>
-          ))}
+          )}
         </ul>
 
         <button className="mt-3 flex w-full items-center justify-between rounded-lg border border-border px-3 py-2 text-xs text-muted-foreground transition-colors hover:border-primary/50 hover:text-foreground">
@@ -144,7 +135,7 @@ export function RightPanel() {
       <section className="rounded-xl border border-border bg-card p-4">
         <h2 className="text-sm font-bold tracking-[0.12em]">EVENT SUMMARY (TODAY)</h2>
         <div className="mt-3 flex items-center gap-4">
-          <Donut />
+          <Donut slices={summary} total={total} />
           <ul className="min-w-0 flex-1 space-y-2">
             {summary.map((s) => (
               <li key={s.label} className="flex items-center gap-2 text-xs">
