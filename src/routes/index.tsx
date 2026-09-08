@@ -8,6 +8,8 @@ import { EventsAndMap } from "@/components/dash/EventsAndMap";
 import { RightPanel } from "@/components/dash/RightPanel";
 import { StatusBar } from "@/components/dash/StatusBar";
 import { AnprPanel } from "@/components/dash/AnprPanel";
+import { EvidenceModal } from "@/components/dash/EvidenceModal";
+import { useEventLog, type LogEvent } from "@/lib/eventLog";
 
 export const Route = createFileRoute("/")({
   head: () => ({
