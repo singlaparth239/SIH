@@ -43,7 +43,7 @@ function Donut({ slices, total }: { slices: { label: string; pct: number; color:
 }
 
 export function RightPanel({
-  events,
+  events = [],
   onOpenEvidence,
 }: {
   events: LogEvent[];

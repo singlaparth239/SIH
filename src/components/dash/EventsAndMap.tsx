@@ -22,7 +22,7 @@ const mapCams = [
 ];
 
 function RecentEvents({
-  events,
+  events = [],
   live,
   onOpenEvidence,
 }: {
@@ -189,7 +189,7 @@ function CameraMap() {
 }
 
 export function EventsAndMap({
-  events,
+  events = [],
   live,
   onOpenEvidence,
 }: {
