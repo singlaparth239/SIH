@@ -74,13 +74,20 @@ function Dashboard() {
           <div className="flex flex-col gap-3 xl:flex-row">
             <div className="min-w-0 flex-1 space-y-3">
               <LiveFeeds anprActive={anprOn} onToggleAnpr={() => setAnprOn((v) => !v)} />
-              <EventsAndMap />
+              <EventsAndMap events={events} live={live} onOpenEvidence={setEvidence} />
             </div>
-            <AnprPanel open={anprOn} onClose={() => setAnprOn(false)} />
-            <RightPanel />
+            <AnprPanel
+              open={anprOn}
+              onClose={() => setAnprOn(false)}
+              events={events}
+              live={live}
+              onOpenEvidence={setEvidence}
+            />
+            <RightPanel events={events} onOpenEvidence={setEvidence} />
           </div>
           <StatusBar />
         </main>
+        <EvidenceModal event={evidence} onClose={() => setEvidence(null)} />
       </div>
     </div>
   );
