@@ -8,6 +8,8 @@ import { EventsAndMap } from "@/components/dash/EventsAndMap";
 import { RightPanel } from "@/components/dash/RightPanel";
 import { StatusBar } from "@/components/dash/StatusBar";
 import { AnprPanel } from "@/components/dash/AnprPanel";
+import { EvidenceModal } from "@/components/dash/EvidenceModal";
+import { useEventLog, type LogEvent } from "@/lib/eventLog";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -33,6 +35,9 @@ export const Route = createFileRoute("/")({
 
 function Dashboard() {
   const [anprOn, setAnprOn] = useState(false);
+  const [evidence, setEvidence] = useState<LogEvent | null>(null);
+  const { events, live } = useEventLog();
+  const activeAlerts = events.filter((e) => e.severity !== "LOW").length;
   return (
     <div className="flex min-h-screen w-full bg-background text-foreground">
       <div className="hidden lg:block">
@@ -48,7 +53,7 @@ function Dashboard() {
             <div className="flex min-w-0 items-center gap-2 rounded-lg border border-danger/50 bg-danger/15 px-3 py-2">
               <Bell className="h-4 w-4 shrink-0 animate-pulse text-danger" />
               <span className="truncate text-xs font-bold tracking-wide text-danger">
-                3 ACTIVE ALERTS
+                {activeAlerts} ACTIVE ALERTS
               </span>
             </div>
           </div>
@@ -69,13 +74,20 @@ function Dashboard() {
           <div className="flex flex-col gap-3 xl:flex-row">
             <div className="min-w-0 flex-1 space-y-3">
               <LiveFeeds anprActive={anprOn} onToggleAnpr={() => setAnprOn((v) => !v)} />
-              <EventsAndMap />
+              <EventsAndMap events={events} live={live} onOpenEvidence={setEvidence} />
             </div>
-            <AnprPanel open={anprOn} onClose={() => setAnprOn(false)} />
-            <RightPanel />
+            <AnprPanel
+              open={anprOn}
+              onClose={() => setAnprOn(false)}
+              events={events}
+              live={live}
+              onOpenEvidence={setEvidence}
+            />
+            <RightPanel events={events} onOpenEvidence={setEvidence} />
           </div>
           <StatusBar />
         </main>
+        <EvidenceModal event={evidence} onClose={() => setEvidence(null)} />
       </div>
     </div>
   );
