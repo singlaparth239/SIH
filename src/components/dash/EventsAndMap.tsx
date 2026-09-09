@@ -75,7 +75,7 @@ function RecentEvents({
                           e.type === "INTRUSION"
                             ? "border-danger/40 bg-danger/15 text-danger"
                             : e.type === "ANPR"
-                              ? "border-warning/40 bg-warning/15 text-warning"
+                              ? "border-primary/40 bg-primary/15 text-primary"
                               : "border-border bg-panel text-muted-foreground"
                         }`}
                       >
