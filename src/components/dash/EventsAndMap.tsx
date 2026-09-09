@@ -11,7 +11,7 @@ const severityClass: Record<LogEvent["severity"], string> = {
 
 const typeMeta: Record<LogEvent["type"], { icon: typeof Car; tone: string }> = {
   INTRUSION: { icon: PersonStanding, tone: "text-danger" },
-  ANPR: { icon: Car, tone: "text-warning" },
+  ANPR: { icon: Car, tone: "text-primary" },
   OTHER: { icon: Footprints, tone: "text-primary" },
 };
 
