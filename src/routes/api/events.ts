@@ -1,50 +1,53 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { BACKEND_HEADERS, BACKEND_URL } from "@/lib/backend.server";
 
 /**
- * Reads the real-time event log written by the local Python backend.
- *
- * File: <project root>/data.json
- * Expected shape — a JSON array (newest first or last, both fine):
- * [
- *   {
- *     "timestamp": "2026-09-07 22:24:31",        // or ISO string / epoch seconds
- *     "event_type": "INTRUSION" | "ANPR",
- *     "details": "Person crossed fence line",     // free text
- *     "camera": "CAM 01 - Main Gate",             // optional
- *     "plate": "DL 3C AB 1234",                   // optional (ANPR)
- *     "vehicle_type": "car" | "truck" | "bike",   // optional (ANPR)
- *     "confidence": 0.94,                          // optional
- *     "snapshot_path": "evidence_snapshots/x.jpg"  // optional
- *   }
- * ]
- * An object with an "events"/"logs" array is also accepted.
+ * Proxies the FastAPI backend's GET /events endpoint.
+ * The dashboard polls this same-origin route (no CORS / ngrok interstitial issues).
+ * Falls back to the local data.json file if the backend is unreachable.
  */
+
+function extractList(parsed: unknown): unknown[] {
+  if (Array.isArray(parsed)) return parsed;
+  if (typeof parsed === "object" && parsed !== null) {
+    const r = parsed as Record<string, unknown>;
+    const inner = r["events"] ?? r["logs"];
+    if (Array.isArray(inner)) return inner;
+  }
+  return [];
+}
 
 export const Route = createFileRoute("/api/events")({
   server: {
     handlers: {
       GET: async () => {
         try {
-          const { readFile } = await import("node:fs/promises");
-          const { join } = await import("node:path");
-          const raw = await readFile(join(process.cwd(), "data.json"), "utf8");
-          const parsed: unknown = JSON.parse(raw);
-          const list = Array.isArray(parsed)
-            ? parsed
-            : typeof parsed === "object" && parsed !== null
-              ? ((parsed as Record<string, unknown>)["events"] ??
-                  (parsed as Record<string, unknown>)["logs"] ??
-                  [])
-              : [];
+          const res = await fetch(`${BACKEND_URL}/events`, {
+            headers: { ...BACKEND_HEADERS, accept: "application/json" },
+            signal: AbortSignal.timeout(8000),
+          });
+          if (!res.ok) throw new Error(`backend ${res.status}`);
+          const list = extractList(await res.json());
           return Response.json(
-            { source: "file", events: Array.isArray(list) ? list : [] },
+            { source: "backend", events: list },
             { headers: { "cache-control": "no-store" } },
           );
         } catch {
-          return Response.json(
-            { source: "missing", events: [] },
-            { headers: { "cache-control": "no-store" } },
-          );
+          // Backend down — fall back to a local data.json if one exists.
+          try {
+            const { readFile } = await import("node:fs/promises");
+            const { join } = await import("node:path");
+            const list = extractList(JSON.parse(await readFile(join(process.cwd(), "data.json"), "utf8")));
+            return Response.json(
+              { source: "file", events: list },
+              { headers: { "cache-control": "no-store" } },
+            );
+          } catch {
+            return Response.json(
+              { source: "missing", events: [] },
+              { headers: { "cache-control": "no-store" } },
+            );
+          }
         }
       },
     },
