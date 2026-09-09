@@ -11,6 +11,8 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ApiEventsRouteImport } from './routes/api/events'
+import { Route as ApiHealthRouteImport } from './routes/api/health'
+import { Route as ApiProcessVideoRouteImport } from './routes/api/process-video'
 import { Route as ApiAnprPlatesRouteImport } from './routes/api/anpr/plates'
 import { Route as ApiEvidenceSplatRouteImport } from './routes/api/evidence/$'
 
@@ -22,6 +24,16 @@ const IndexRoute = IndexRouteImport.update({
 const ApiEventsRoute = ApiEventsRouteImport.update({
   id: '/api/events',
   path: '/api/events',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiHealthRoute = ApiHealthRouteImport.update({
+  id: '/api/health',
+  path: '/api/health',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiProcessVideoRoute = ApiProcessVideoRouteImport.update({
+  id: '/api/process-video',
+  path: '/api/process-video',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiAnprPlatesRoute = ApiAnprPlatesRouteImport.update({
@@ -38,12 +50,16 @@ const ApiEvidenceSplatRoute = ApiEvidenceSplatRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/api/events': typeof ApiEventsRoute
+  '/api/health': typeof ApiHealthRoute
+  '/api/process-video': typeof ApiProcessVideoRoute
   '/api/anpr/plates': typeof ApiAnprPlatesRoute
   '/api/evidence/$': typeof ApiEvidenceSplatRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/api/events': typeof ApiEventsRoute
+  '/api/health': typeof ApiHealthRoute
+  '/api/process-video': typeof ApiProcessVideoRoute
   '/api/anpr/plates': typeof ApiAnprPlatesRoute
   '/api/evidence/$': typeof ApiEvidenceSplatRoute
 }
@@ -51,20 +67,43 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/api/events': typeof ApiEventsRoute
+  '/api/health': typeof ApiHealthRoute
+  '/api/process-video': typeof ApiProcessVideoRoute
   '/api/anpr/plates': typeof ApiAnprPlatesRoute
   '/api/evidence/$': typeof ApiEvidenceSplatRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/api/events' | '/api/anpr/plates' | '/api/evidence/$'
+  fullPaths:
+    | '/'
+    | '/api/events'
+    | '/api/health'
+    | '/api/process-video'
+    | '/api/anpr/plates'
+    | '/api/evidence/$'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/api/events' | '/api/anpr/plates' | '/api/evidence/$'
-  id: '__root__' | '/' | '/api/events' | '/api/anpr/plates' | '/api/evidence/$'
+  to:
+    | '/'
+    | '/api/events'
+    | '/api/health'
+    | '/api/process-video'
+    | '/api/anpr/plates'
+    | '/api/evidence/$'
+  id:
+    | '__root__'
+    | '/'
+    | '/api/events'
+    | '/api/health'
+    | '/api/process-video'
+    | '/api/anpr/plates'
+    | '/api/evidence/$'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ApiEventsRoute: typeof ApiEventsRoute
+  ApiHealthRoute: typeof ApiHealthRoute
+  ApiProcessVideoRoute: typeof ApiProcessVideoRoute
   ApiAnprPlatesRoute: typeof ApiAnprPlatesRoute
   ApiEvidenceSplatRoute: typeof ApiEvidenceSplatRoute
 }
@@ -83,6 +122,20 @@ declare module '@tanstack/react-router' {
       path: '/api/events'
       fullPath: '/api/events'
       preLoaderRoute: typeof ApiEventsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/health': {
+      id: '/api/health'
+      path: '/api/health'
+      fullPath: '/api/health'
+      preLoaderRoute: typeof ApiHealthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/process-video': {
+      id: '/api/process-video'
+      path: '/api/process-video'
+      fullPath: '/api/process-video'
+      preLoaderRoute: typeof ApiProcessVideoRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/anpr/plates': {
@@ -105,6 +158,8 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ApiEventsRoute: ApiEventsRoute,
+  ApiHealthRoute: ApiHealthRoute,
+  ApiProcessVideoRoute: ApiProcessVideoRoute,
   ApiAnprPlatesRoute: ApiAnprPlatesRoute,
   ApiEvidenceSplatRoute: ApiEvidenceSplatRoute,
 }

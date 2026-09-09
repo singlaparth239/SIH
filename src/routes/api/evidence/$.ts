@@ -1,8 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { BACKEND_HEADERS, BACKEND_URL } from "@/lib/backend.server";
 
 /**
- * Serves evidence snapshots written by the local Python backend into
- * <project root>/evidence_snapshots/. Requested as /api/evidence/<filename>.
+ * Serves evidence snapshots written by the Python backend. Tries the local
+ * <project root>/evidence_snapshots/ folder first, then falls back to the
+ * FastAPI backend's /evidence_snapshots/<filename>. Requested as /api/evidence/<filename>.
  */
 
 const MIME: Record<string, string> = {
@@ -33,6 +35,23 @@ export const Route = createFileRoute("/api/evidence/$")({
           const buf = await readFile(join(process.cwd(), "evidence_snapshots", name));
           return new Response(new Uint8Array(buf), {
             headers: { "content-type": MIME[ext]!, "cache-control": "public, max-age=60" },
+          });
+        } catch {
+          /* fall through to the backend */
+        }
+
+        try {
+          const res = await fetch(`${BACKEND_URL}/evidence_snapshots/${encodeURIComponent(name)}`, {
+            headers: { ...BACKEND_HEADERS },
+            signal: AbortSignal.timeout(10_000),
+          });
+          if (!res.ok) return new Response("Not found", { status: 404 });
+          const buf = await res.arrayBuffer();
+          return new Response(buf, {
+            headers: {
+              "content-type": res.headers.get("content-type") ?? MIME[ext]!,
+              "cache-control": "public, max-age=60",
+            },
           });
         } catch {
           return new Response("Not found", { status: 404 });
