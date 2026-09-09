@@ -58,7 +58,7 @@ export function RightPanel({
   };
   const colors: Record<string, { color: string; dot: string }> = {
     Intrusion: { color: "var(--danger)", dot: "bg-danger" },
-    ANPR: { color: "var(--warning)", dot: "bg-warning" },
+    ANPR: { color: "var(--primary)", dot: "bg-primary" },
     Others: { color: "var(--muted-foreground)", dot: "bg-muted-foreground" },
   };
   const summary = Object.entries(counts).map(([label, count]) => ({

@@ -1,6 +1,17 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { X, ImageOff } from "lucide-react";
 import type { LogEvent } from "@/lib/eventLog";
+
+function MissingThumb({ className = "h-14 w-20" }: { className?: string }) {
+  return (
+    <div
+      className={`grid shrink-0 place-items-center rounded-md border border-border bg-panel text-muted-foreground ${className}`}
+      aria-label="No evidence snapshot"
+    >
+      <ImageOff className="h-4 w-4" />
+    </div>
+  );
+}
 
 export function EvidenceThumb({
   event,
@@ -11,16 +22,8 @@ export function EvidenceThumb({
   onOpen: (e: LogEvent) => void;
   className?: string;
 }) {
-  if (!event.snapshot) {
-    return (
-      <div
-        className={`grid shrink-0 place-items-center rounded-md border border-border bg-panel text-muted-foreground ${className}`}
-        aria-label="No evidence snapshot"
-      >
-        <ImageOff className="h-4 w-4" />
-      </div>
-    );
-  }
+  const [broken, setBroken] = useState(false);
+  if (!event.snapshot || broken) return <MissingThumb className={className} />;
   return (
     <button
       type="button"
@@ -32,6 +35,7 @@ export function EvidenceThumb({
         src={event.snapshot}
         alt={`Evidence snapshot — ${event.details} on ${event.camera}`}
         loading="lazy"
+        onError={() => setBroken(true)}
         className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
       />
     </button>

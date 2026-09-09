@@ -11,7 +11,7 @@ const severityClass: Record<LogEvent["severity"], string> = {
 
 const typeMeta: Record<LogEvent["type"], { icon: typeof Car; tone: string }> = {
   INTRUSION: { icon: PersonStanding, tone: "text-danger" },
-  ANPR: { icon: Car, tone: "text-warning" },
+  ANPR: { icon: Car, tone: "text-primary" },
   OTHER: { icon: Footprints, tone: "text-primary" },
 };
 
@@ -75,7 +75,7 @@ function RecentEvents({
                           e.type === "INTRUSION"
                             ? "border-danger/40 bg-danger/15 text-danger"
                             : e.type === "ANPR"
-                              ? "border-warning/40 bg-warning/15 text-warning"
+                              ? "border-primary/40 bg-primary/15 text-primary"
                               : "border-border bg-panel text-muted-foreground"
                         }`}
                       >
