@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { BACKEND_HEADERS, BACKEND_URL } from "@/lib/backend.server";
+import { BACKEND_HEADERS, backendUrl } from "@/lib/backend.server";
 
 /**
  * Proxies the FastAPI backend's GET /events endpoint.
@@ -22,7 +22,7 @@ export const Route = createFileRoute("/api/events")({
     handlers: {
       GET: async () => {
         try {
-          const res = await fetch(`${BACKEND_URL}/events`, {
+          const res = await fetch(`${backendUrl()}/events`, {
             headers: { ...BACKEND_HEADERS, accept: "application/json" },
             signal: AbortSignal.timeout(8000),
           });

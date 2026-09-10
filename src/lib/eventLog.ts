@@ -31,6 +31,14 @@ export function snapshotUrl(path: unknown): string | undefined {
   return name ? `/api/evidence/${encodeURIComponent(name)}` : undefined;
 }
 
+/** Pick the best image reference from a raw backend event row. */
+function snapshotFrom(r: Record<string, unknown>): string | undefined {
+  return (
+    snapshotUrl(r["snapshot_path"] ?? r["snapshot"] ?? r["image_path"]) ??
+    snapshotUrl(r["snapshot_url"])
+  );
+}
+
 function formatTime(value: unknown): string {
   if (typeof value === "number") return new Date(value * (value > 1e12 ? 1 : 1000)).toLocaleTimeString("en-US", { hour12: true });
   if (typeof value === "string" && value.trim()) {
@@ -74,9 +82,7 @@ export function normalizeEvent(raw: unknown, index: number): LogEvent | null {
         : type === "INTRUSION"
           ? "HIGH"
           : "LOW",
-    ...(snapshotUrl(r["snapshot_path"] ?? r["snapshot"] ?? r["image_path"])
-      ? { snapshot: snapshotUrl(r["snapshot_path"] ?? r["snapshot"] ?? r["image_path"])! }
-      : {}),
+    ...(snapshotFrom(r) ? { snapshot: snapshotFrom(r)! } : {}),
   };
 }
 

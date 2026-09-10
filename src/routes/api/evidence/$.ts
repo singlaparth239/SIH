@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { BACKEND_HEADERS, BACKEND_URL } from "@/lib/backend.server";
+import { BACKEND_HEADERS, backendUrl } from "@/lib/backend.server";
 
 /**
  * Serves evidence snapshots written by the Python backend. Tries the local
@@ -40,22 +40,25 @@ export const Route = createFileRoute("/api/evidence/$")({
           /* fall through to the backend */
         }
 
-        try {
-          const res = await fetch(`${BACKEND_URL}/evidence_snapshots/${encodeURIComponent(name)}`, {
-            headers: { ...BACKEND_HEADERS },
-            signal: AbortSignal.timeout(10_000),
-          });
-          if (!res.ok) return new Response("Not found", { status: 404 });
-          const buf = await res.arrayBuffer();
-          return new Response(buf, {
-            headers: {
-              "content-type": res.headers.get("content-type") ?? MIME[ext]!,
-              "cache-control": "public, max-age=60",
-            },
-          });
-        } catch {
-          return new Response("Not found", { status: 404 });
+        for (const prefix of ["evidence_snapshots", "evidence"]) {
+          try {
+            const res = await fetch(`${backendUrl()}/${prefix}/${encodeURIComponent(name)}`, {
+              headers: { ...BACKEND_HEADERS },
+              signal: AbortSignal.timeout(10_000),
+            });
+            if (!res.ok) continue;
+            const buf = await res.arrayBuffer();
+            return new Response(buf, {
+              headers: {
+                "content-type": res.headers.get("content-type") ?? MIME[ext]!,
+                "cache-control": "public, max-age=60",
+              },
+            });
+          } catch {
+            /* try the next prefix */
+          }
         }
+        return new Response("Not found", { status: 404 });
       },
     },
   },

@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { BACKEND_HEADERS, BACKEND_URL } from "@/lib/backend.server";
+import { BACKEND_HEADERS, backendUrl } from "@/lib/backend.server";
 
 /** Proxies the FastAPI backend's GET /health endpoint. */
 export const Route = createFileRoute("/api/health")({
@@ -7,7 +7,7 @@ export const Route = createFileRoute("/api/health")({
     handlers: {
       GET: async () => {
         try {
-          const res = await fetch(`${BACKEND_URL}/health`, {
+          const res = await fetch(`${backendUrl()}/health`, {
             headers: { ...BACKEND_HEADERS, accept: "application/json" },
             signal: AbortSignal.timeout(5000),
           });
@@ -19,14 +19,14 @@ export const Route = createFileRoute("/api/health")({
             /* plain-text health response */
           }
           return Response.json(
-            { ok: res.ok, status: res.status, backend: BACKEND_URL, data },
+            { ok: res.ok, status: res.status, backend: backendUrl(), data },
             { status: res.ok ? 200 : 502, headers: { "cache-control": "no-store" } },
           );
         } catch (err) {
           return Response.json(
             {
               ok: false,
-              backend: BACKEND_URL,
+              backend: backendUrl(),
               error: err instanceof Error ? err.message : "unreachable",
             },
             { status: 502, headers: { "cache-control": "no-store" } },
