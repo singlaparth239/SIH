@@ -197,7 +197,7 @@ export function LiveFeeds({
 
   return (
     <section className="rounded-xl border border-border bg-card p-4">
-      <header className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
+      <header className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex min-w-0 items-center gap-3">
           <h2 className="truncate text-sm font-bold tracking-[0.12em] text-foreground">LIVE FEEDS</h2>
           <span
