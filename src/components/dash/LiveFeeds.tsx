@@ -1,8 +1,45 @@
-import { Camera, Grid2X2, List, Move3D, Plus, Settings2, Bell, ScanSearch } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import {
+  Camera,
+  Grid2X2,
+  List,
+  Loader2,
+  Move3D,
+  Plus,
+  Settings2,
+  Bell,
+  ScanSearch,
+  UploadCloud,
+} from "lucide-react";
+import { toast } from "sonner";
 import cam01 from "@/assets/cam01.jpg";
 import cam02 from "@/assets/cam02.jpg";
 import cam03 from "@/assets/cam03.jpg";
 import cam04 from "@/assets/cam04.jpg";
+
+/** Polls the FastAPI backend health endpoint through the same-origin proxy. */
+function useBackendHealth() {
+  const [online, setOnline] = useState<boolean | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+    const check = async () => {
+      try {
+        const res = await fetch("/api/health", { cache: "no-store" });
+        const data = (await res.json()) as { ok?: boolean };
+        if (!cancelled) setOnline(res.ok && data.ok === true);
+      } catch {
+        if (!cancelled) setOnline(false);
+      }
+    };
+    void check();
+    const t = setInterval(check, 15_000);
+    return () => {
+      cancelled = true;
+      clearInterval(t);
+    };
+  }, []);
+  return online;
+}
 
 type Box = { x: number; y: number; w: number; h: number; tag: string; tone: "danger" | "success" };
 
@@ -132,11 +169,81 @@ export function LiveFeeds({
   anprActive: boolean;
   onToggleAnpr: () => void;
 }) {
+  const backendOnline = useBackendHealth();
+  const fileInput = useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = useState(false);
+
+  async function handleVideo(file: File) {
+    setUploading(true);
+    try {
+      const form = new FormData();
+      form.append("file", file, file.name);
+      const res = await fetch("/api/process-video", { method: "POST", body: form });
+      const data = (await res.json()) as { ok?: boolean; error?: string };
+      if (res.ok && data.ok) {
+        toast.success("Video sent to AI backend", {
+          description: "Detections will appear in the events feed shortly.",
+        });
+      } else {
+        toast.error("Video processing failed", { description: data.error ?? `HTTP ${res.status}` });
+      }
+    } catch {
+      toast.error("Could not reach the backend");
+    } finally {
+      setUploading(false);
+      if (fileInput.current) fileInput.current.value = "";
+    }
+  }
+
   return (
     <section className="rounded-xl border border-border bg-card p-4">
       <header className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
-        <h2 className="truncate text-sm font-bold tracking-[0.12em] text-foreground">LIVE FEEDS</h2>
+        <div className="flex min-w-0 items-center gap-3">
+          <h2 className="truncate text-sm font-bold tracking-[0.12em] text-foreground">LIVE FEEDS</h2>
+          <span
+            className={`flex shrink-0 items-center gap-1.5 rounded-full border px-2 py-0.5 text-[10px] font-semibold tracking-wide ${
+              backendOnline === null
+                ? "border-border text-muted-foreground"
+                : backendOnline
+                  ? "border-success/40 bg-success/10 text-success"
+                  : "border-danger/40 bg-danger/10 text-danger"
+            }`}
+          >
+            <span
+              className={`h-1.5 w-1.5 rounded-full ${
+                backendOnline === null
+                  ? "bg-muted-foreground"
+                  : backendOnline
+                    ? "animate-pulse bg-success"
+                    : "bg-danger"
+              }`}
+            />
+            {backendOnline === null ? "BACKEND …" : backendOnline ? "BACKEND ONLINE" : "BACKEND OFFLINE"}
+          </span>
+        </div>
         <div className="flex shrink-0 items-center gap-2">
+          <input
+            ref={fileInput}
+            type="file"
+            accept="video/*"
+            className="hidden"
+            onChange={(e) => {
+              const f = e.target.files?.[0];
+              if (f) void handleVideo(f);
+            }}
+          />
+          <button
+            onClick={() => fileInput.current?.click()}
+            disabled={uploading}
+            className="flex h-8 items-center gap-1.5 rounded-md border border-border px-3 text-xs font-semibold text-muted-foreground transition-colors hover:bg-accent hover:text-foreground disabled:opacity-50"
+          >
+            {uploading ? (
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            ) : (
+              <UploadCloud className="h-3.5 w-3.5" />
+            )}
+            {uploading ? "Processing…" : "Process Video"}
+          </button>
           <button
             onClick={onToggleAnpr}
             aria-pressed={anprActive}
