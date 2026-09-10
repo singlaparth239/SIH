@@ -82,9 +82,7 @@ export function normalizeEvent(raw: unknown, index: number): LogEvent | null {
         : type === "INTRUSION"
           ? "HIGH"
           : "LOW",
-    ...(snapshotUrl(r["snapshot_path"] ?? r["snapshot"] ?? r["image_path"])
-      ? { snapshot: snapshotUrl(r["snapshot_path"] ?? r["snapshot"] ?? r["image_path"])! }
-      : {}),
+    ...(snapshotFrom(r) ? { snapshot: snapshotFrom(r)! } : {}),
   };
 }
 
