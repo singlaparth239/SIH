@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { BACKEND_HEADERS, BACKEND_URL } from "@/lib/backend.server";
+import { BACKEND_HEADERS, backendUrl } from "@/lib/backend.server";
 
 /**
  * Proxies video uploads to the FastAPI backend's POST /process-video.
@@ -25,7 +25,7 @@ export const Route = createFileRoute("/api/process-video")({
         out.append("file", file, file.name);
 
         try {
-          const res = await fetch(`${BACKEND_URL}/process-video`, {
+          const res = await fetch(`${backendUrl()}/process-video`, {
             method: "POST",
             headers: { ...BACKEND_HEADERS },
             body: out,

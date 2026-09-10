@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { BACKEND_HEADERS, BACKEND_URL } from "@/lib/backend.server";
+import { BACKEND_HEADERS, backendUrl } from "@/lib/backend.server";
 
 /**
  * Serves evidence snapshots written by the Python backend. Tries the local
@@ -41,7 +41,7 @@ export const Route = createFileRoute("/api/evidence/$")({
         }
 
         try {
-          const res = await fetch(`${BACKEND_URL}/evidence_snapshots/${encodeURIComponent(name)}`, {
+          const res = await fetch(`${backendUrl()}/evidence_snapshots/${encodeURIComponent(name)}`, {
             headers: { ...BACKEND_HEADERS },
             signal: AbortSignal.timeout(10_000),
           });
