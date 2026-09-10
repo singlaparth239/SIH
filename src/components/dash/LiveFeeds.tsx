@@ -221,7 +221,7 @@ export function LiveFeeds({
             {backendOnline === null ? "BACKEND …" : backendOnline ? "BACKEND ONLINE" : "BACKEND OFFLINE"}
           </span>
         </div>
-        <div className="flex shrink-0 items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <input
             ref={fileInput}
             type="file"
