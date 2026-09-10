@@ -40,12 +40,13 @@ export const Route = createFileRoute("/api/evidence/$")({
           /* fall through to the backend */
         }
 
-        try {
-          const res = await fetch(`${backendUrl()}/evidence_snapshots/${encodeURIComponent(name)}`, {
-            headers: { ...BACKEND_HEADERS },
-            signal: AbortSignal.timeout(10_000),
-          });
-          if (!res.ok) return new Response("Not found", { status: 404 });
+        for (const prefix of ["evidence_snapshots", "evidence"]) {
+          try {
+            const res = await fetch(`${backendUrl()}/${prefix}/${encodeURIComponent(name)}`, {
+              headers: { ...BACKEND_HEADERS },
+              signal: AbortSignal.timeout(10_000),
+            });
+            if (!res.ok) continue;
           const buf = await res.arrayBuffer();
           return new Response(buf, {
             headers: {
