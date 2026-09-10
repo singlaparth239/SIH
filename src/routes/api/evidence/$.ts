@@ -47,16 +47,18 @@ export const Route = createFileRoute("/api/evidence/$")({
               signal: AbortSignal.timeout(10_000),
             });
             if (!res.ok) continue;
-          const buf = await res.arrayBuffer();
-          return new Response(buf, {
-            headers: {
-              "content-type": res.headers.get("content-type") ?? MIME[ext]!,
-              "cache-control": "public, max-age=60",
-            },
-          });
-        } catch {
-          return new Response("Not found", { status: 404 });
+            const buf = await res.arrayBuffer();
+            return new Response(buf, {
+              headers: {
+                "content-type": res.headers.get("content-type") ?? MIME[ext]!,
+                "cache-control": "public, max-age=60",
+              },
+            });
+          } catch {
+            /* try the next prefix */
+          }
         }
+        return new Response("Not found", { status: 404 });
       },
     },
   },
